@@ -1,0 +1,107 @@
+############################
+# 공통 (OS / IDE)
+############################
+
+# macOS
+.DS_Store
+
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# VS Code
+.vscode/
+
+# IntelliJ / Android Studio
+.idea/
+*.iml
+
+############################
+# Flutter / Dart
+############################
+
+# Flutter build outputs
+build/
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+.packages
+.pub-cache/
+
+# Generated files
+lib/generated_plugin_registrant.dart
+
+# iOS / Android platform specific
+ios/Pods/
+ios/.symlinks/
+ios/Flutter/Flutter.framework
+ios/Flutter/Flutter.podspec
+ios/Flutter/Generated.xcconfig
+ios/Flutter/flutter_export_environment.sh
+
+android/.gradle/
+android/local.properties
+android/key.properties
+android/**/GeneratedPluginRegistrant.java
+
+############################
+# Python / FastAPI
+############################
+
+# Python cache
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environment
+.venv/
+venv/
+env/
+
+# Environment variables
+.env
+.env.*
+!.env.example
+
+# FastAPI / Uvicorn
+*.log
+
+# Python build artifacts
+build/
+dist/
+*.egg-info/
+
+############################
+# Database / Storage
+############################
+
+# SQLite (혹시 테스트용 쓰면)
+*.sqlite3
+*.db
+
+# Uploaded files (로컬 테스트용)
+uploads/
+media/
+
+############################
+# Jupyter (있다면)
+############################
+
+.ipynb_checkpoints/
+
+############################
+# Test / Temp
+############################
+
+coverage/
+htmlcov/
+.cache/
+
+############################
+# Secrets (절대 커밋 금지)
+############################
+
+*.pem
+*.key
+*.crt
