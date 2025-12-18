@@ -1,0 +1,19 @@
+fastapi==0.124.0
+uvicorn[standard]==0.38.0
+
+SQLAlchemy==2.0.44
+asyncpg==0.29.0
+alembic==1.13.1
+
+python-dotenv==1.0.1
+pydantic==2.12.5
+pydantic-core==2.41.5
+pydantic-settings==2.2.1
+
+watchfiles==1.1.1
+
+# 선택적 (개발 편의)
+colorama==0.4.6
+
+# 위 라이브러리 다운로드 명령어
+# pip install -r requirements.txt
