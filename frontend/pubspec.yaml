@@ -1,0 +1,35 @@
+name: family_app
+description: "A new Flutter project."
+publish_to: 'none'
+
+version: 1.0.0+1
+
+environment:
+  sdk: ^3.5.3
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  cupertino_icons: ^1.0.8
+  intl: ^0.19.0
+
+  # 상태관리 (폰트 크기, 테마 등)
+  provider: ^6.0.5
+
+  # 이미지 선택
+  image_picker: 1.0.7
+
+  shared_preferences: ^2.2.3
+
+dependency_overrides:
+  # lifecycle 최신 버전이 SDK 35 요구 → 강제로 안정버전 사용
+  flutter_plugin_android_lifecycle: 2.0.14
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^4.0.0
+
+flutter:
+  uses-material-design: true
