@@ -4,7 +4,6 @@ from sqlalchemy import (
     Column,
     BigInteger,
     DateTime,
-    ForeignKey,
     UniqueConstraint,
     func,
 )
@@ -20,18 +19,19 @@ class FamilyMember(Base):
     # =========================
     id = Column(BigInteger, primary_key=True, index=True)
 
+    # ❌ FK 제거 (family)
     family_id = Column(
         BigInteger,
-        ForeignKey("family.id"),
-        nullable=False,
-    )
-    user_id = Column(
-        BigInteger,
-        ForeignKey("app_user.id"),
         nullable=False,
     )
 
-    # PostgreSQL ENUM (이미 DB에 생성된 타입 참조)
+    # ❌ FK 제거 (app_user)
+    user_id = Column(
+        BigInteger,
+        nullable=False,
+    )
+
+    # PostgreSQL ENUM (타입은 유지)
     relation = Column(
         ENUM(
             "father",
@@ -46,7 +46,7 @@ class FamilyMember(Base):
             "cousin",
             "spouse",
             name="relation_type",
-            create_type=False,   # ★ 중요
+            create_type=False,   # ★ 그대로 유지
         ),
         nullable=False,
     )

@@ -30,10 +30,10 @@ class Photo(Base):
         nullable=False,
     )
 
+    # ❌ app_user FK 제거 (로그인 전 단계)
     uploader_id = Column(
         BigInteger,
-        ForeignKey("app_user.id"),
-        nullable=False,
+        nullable=False,   # 나중에 로그인 붙일 때 FK 다시 추가
     )
 
     # =========================

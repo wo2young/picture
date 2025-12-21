@@ -21,8 +21,7 @@ class AlbumFolder(Base):
 
     family_id = Column(
         BigInteger,
-        ForeignKey("family.id"),
-        nullable=False,
+        nullable=False,   # FK 제거
     )
 
     name = Column(String(150), nullable=False)

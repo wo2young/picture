@@ -6,7 +6,6 @@ from sqlalchemy import (
     String,
     Text,
     DateTime,
-    ForeignKey,
     Index,
     func,
 )
@@ -26,14 +25,12 @@ class Diary(Base):
     # =========================
     family_id = Column(
         BigInteger,
-        ForeignKey("family.id"),
-        nullable=False,
+        nullable=False,   # FK 제거 (family)
     )
 
     author_id = Column(
         BigInteger,
-        ForeignKey("app_user.id"),
-        nullable=False,
+        nullable=False,   # FK 제거 (app_user)
     )
 
     # =========================
