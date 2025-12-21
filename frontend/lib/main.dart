@@ -1,8 +1,11 @@
 // lib/main.dart
 import 'package:flutter/material.dart';
-import 'config/app_routes.dart';
 import 'package:provider/provider.dart';
+
+import 'config/app_routes.dart';
+import 'config/navigation_service.dart';
 import 'package:family_app/view_models/app_settings_view_model.dart';
+import 'package:family_app/pages/auth/auth_gate.dart';
 
 void main() {
   runApp(
@@ -16,10 +19,10 @@ void main() {
 /// ============================================================================
 /// FamilyApp
 /// ----------------------------------------------------------------------------
-/// 앱 전체를 감싸는 최상위 위젯
+/// - 앱 전체 루트
 /// - 테마
 /// - 라우팅
-/// - 공통 UI 스타일을 한 번에 관리
+/// - 로그인 분기는 AuthGate에서 담당
 /// ============================================================================
 class FamilyApp extends StatelessWidget {
   const FamilyApp({super.key});
@@ -27,42 +30,31 @@ class FamilyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final settings = context.watch<AppSettingsViewModel>();
+
     return MaterialApp(
+      navigatorKey: NavigationService.navigatorKey,
+      // 🔥 필수
       title: '가족 사진관',
       debugShowCheckedModeBanner: false,
-
-      // ⭐ 전체 테마 적용
       theme: _warmCreamTheme(settings.fontScale),
-
-      // 앱 시작 화면
-      initialRoute: AppRoutes.home,
-
-      // 모든 화면 이동은 AppRoutes.generateRoute 에서 관리
+      home: const AuthGate(),
       onGenerateRoute: AppRoutes.generateRoute,
     );
   }
-
   // ==========================================================================
   // ⭐ 따뜻한 크림톤 + 브라운 포인트 테마
-  // - 어른(40~60대) 기준 가독성 / 안정감 우선
   // ==========================================================================
   ThemeData _warmCreamTheme(double fontScale) {
-    // 색상 정의
-    const creamLight = Color(0xFFF9F6F1); // 배경용 크림색
-    const warmBrown = Color(0xFF8B6F47); // 메인 포인트 색
-    const beigeGold = Color(0xFFC4A484); // 보조 포인트
-    const darkText = Color(0xFF2F2A26);  // 텍스트 기본색
+    const creamLight = Color(0xFFF9F6F1);
+    const warmBrown = Color(0xFF8B6F47);
+    const beigeGold = Color(0xFFC4A484);
+    const darkText = Color(0xFF2F2A26);
 
     return ThemeData(
       useMaterial3: true,
-
-      // 전체 배경색
       scaffoldBackgroundColor: creamLight,
-
-      // ⭐ 전역 폰트
       fontFamily: 'Pretendard',
 
-      // 색상 스킴
       colorScheme: const ColorScheme.light(
         primary: warmBrown,
         secondary: beigeGold,
@@ -71,9 +63,6 @@ class FamilyApp extends StatelessWidget {
         onSurface: darkText,
       ),
 
-      // ----------------------------------------------------------------------
-      // AppBar 스타일
-      // ----------------------------------------------------------------------
       appBarTheme: const AppBarTheme(
         backgroundColor: creamLight,
         elevation: 0,
@@ -83,14 +72,9 @@ class FamilyApp extends StatelessWidget {
           fontSize: 22,
           fontWeight: FontWeight.bold,
         ),
-        iconTheme: IconThemeData(
-          color: warmBrown,
-        ),
+        iconTheme: IconThemeData(color: warmBrown),
       ),
 
-      // ----------------------------------------------------------------------
-      // 카드 스타일 (앨범 카드, 사진 카드 등)
-      // ----------------------------------------------------------------------
       cardTheme: CardTheme(
         color: Colors.white,
         elevation: 0,
@@ -100,9 +84,6 @@ class FamilyApp extends StatelessWidget {
         ),
       ),
 
-      // ----------------------------------------------------------------------
-      // 텍스트 스타일
-      // ----------------------------------------------------------------------
       textTheme: TextTheme(
         titleLarge: TextStyle(
           color: warmBrown,
@@ -128,9 +109,6 @@ class FamilyApp extends StatelessWidget {
         ),
       ),
 
-      // ----------------------------------------------------------------------
-      // 버튼 스타일
-      // ----------------------------------------------------------------------
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
           backgroundColor: warmBrown,
@@ -153,12 +131,7 @@ class FamilyApp extends StatelessWidget {
         ),
       ),
 
-      // ----------------------------------------------------------------------
-      // 아이콘 기본 색
-      // ----------------------------------------------------------------------
-      iconTheme: const IconThemeData(
-        color: warmBrown,
-      ),
+      iconTheme: const IconThemeData(color: warmBrown),
     );
   }
 }
