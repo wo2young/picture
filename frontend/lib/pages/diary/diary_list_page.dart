@@ -23,7 +23,8 @@ class _DiaryListPageState extends State<DiaryListPage> {
     _viewModel = DiaryViewModel();
     _viewModel.addListener(_onChanged);
 
-    const String familyId = '1';
+    // ✅ familyId는 int
+    const int familyId = 1;
     _viewModel.loadDiariesByFamily(familyId);
   }
 
@@ -41,7 +42,8 @@ class _DiaryListPageState extends State<DiaryListPage> {
   Future<void> _goToWrite() async {
     await Navigator.pushNamed(context, AppRoutes.diaryWrite);
 
-    const String familyId = '1';
+    // ✅ 다시 로딩할 때도 int
+    const int familyId = 1;
     _viewModel.loadDiariesByFamily(familyId);
   }
 
