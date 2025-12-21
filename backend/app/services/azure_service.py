@@ -1,4 +1,3 @@
-# app/services/azure_service.py
 import uuid
 import os
 from fastapi import UploadFile
@@ -21,14 +20,12 @@ container_client = blob_service_client.get_container_client(AZURE_CONTAINER)
 
 async def upload_to_azure(file: UploadFile) -> str:
     """
-    파일을 Azure Blob Storage에 업로드하고 public URL 반환
+    Azure Blob Storage에 파일 업로드 후 public URL 반환
     """
-
     ext = os.path.splitext(file.filename)[1]
     filename = f"{uuid.uuid4().hex}{ext}"
 
     blob_client = container_client.get_blob_client(filename)
-
     contents = await file.read()
 
     blob_client.upload_blob(
