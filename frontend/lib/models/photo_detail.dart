@@ -14,8 +14,8 @@ class PhotoDetail {
 
   factory PhotoDetail.fromJson(Map<String, dynamic> json) {
     return PhotoDetail(
-      photo: Photo.fromJson(json['photo']),
-      diaries: (json['diaries'] as List<dynamic>? ?? [])
+      photo: Photo.fromJson(json),
+      diaries: (json['diaries'] as List)
           .map((e) => Diary.fromJson(e))
           .toList(),
     );

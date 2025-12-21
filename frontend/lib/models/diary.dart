@@ -5,26 +5,23 @@ import 'photo.dart';
 /// ============================================================================
 /// Diary
 /// ----------------------------------------------------------------------------
-/// - 일기 단일 모델
-/// - 목록 / 상세 / 작성 / 수정 전부 이 모델 하나로 처리
-/// - 소규모 앱에 맞게 구조 단순화
-///
-/// ✔ 대표 사진(photoId) 유지
-/// ✔ 다중 사진 연결용 photos 추가 (선택)
+/// - 일기 도메인 모델
+/// - ID / 관계 ID는 모두 int 기준
+/// - Photo 엔티티와 연결되지만, 소유하지 않음
 /// ============================================================================
 class Diary {
-  final String id;
+  final int id;
   final String title;
   final String content;
   final DateTime date;
 
-  /// 대표 사진 (있으면 썸네일용)
-  final String? photoId;
+  /// 대표 사진 ID (썸네일용)
+  final int? photoId;
 
-  /// 연결된 앨범
-  final String? albumId;
+  /// 연결된 앨범 ID
+  final int? albumId;
 
-  /// ⭐ 이 일기에 연결된 사진들 (상세 화면용)
+  /// 상세 조회 시만 포함되는 사진들
   final List<Photo> photos;
 
   const Diary({
@@ -38,12 +35,12 @@ class Diary {
   });
 
   Diary copyWith({
-    String? id,
+    int? id,
     String? title,
     String? content,
     DateTime? date,
-    String? photoId,
-    String? albumId,
+    int? photoId,
+    int? albumId,
     List<Photo>? photos,
   }) {
     return Diary(
@@ -59,19 +56,18 @@ class Diary {
 
   factory Diary.fromJson(Map<String, dynamic> json) {
     return Diary(
-      id: json['id'].toString(),
+      id: json['id'].toInt(),
       title: json['title'] as String,
       content: json['content'] as String,
-
-      // ⚠️ 백엔드 컬럼명에 맞춤
       date: DateTime.parse(
         json['diary_date'] ?? json['date'],
       ),
-
-      photoId: json['photo_id']?.toString(),
-      albumId: json['album_id']?.toString(),
-
-      // ⭐ 상세 조회 시만 내려오는 photos
+      photoId: json['photo_id'] != null
+          ? json['photo_id'].toInt()
+          : null,
+      albumId: json['album_id'] != null
+          ? json['album_id'].toInt()
+          : null,
       photos: (json['photos'] as List<dynamic>?)
           ?.map((e) => Photo.fromJson(e))
           .toList() ??

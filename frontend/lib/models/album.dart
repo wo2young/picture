@@ -2,7 +2,7 @@
 import 'package:family_app/models/photo.dart';
 
 class Album {
-  final String id;
+  final int id;
   final String title;
   final String? description;
   final DateTime createdAt;
@@ -21,7 +21,7 @@ class Album {
   });
 
   Album copyWith({
-    String? id,
+    int? id,
     String? title,
     String? description,
     DateTime? createdAt,
@@ -42,7 +42,7 @@ class Album {
 
   factory Album.fromJson(Map<String, dynamic> json) {
     return Album(
-      id: json['id'].toString(),
+      id: json['id'].toInt(),
       title: json['title'],
       description: json['description'],
       createdAt: DateTime.parse(json['created_at']),

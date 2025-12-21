@@ -1,8 +1,8 @@
 // lib/models/photo.dart
 
 class Photo {
-  final String id;
-  final String albumId;
+  final int id;
+  final int albumId;              // ✅ int로 통일
   final String originalUrl;
   final String thumbnailUrl;
   final String? description;
@@ -19,10 +19,9 @@ class Photo {
     this.place,
   });
 
-  // ✅ 이거 추가
   Photo copyWith({
-    String? id,
-    String? albumId,
+    int? id,
+    int? albumId,
     String? originalUrl,
     String? thumbnailUrl,
     String? description,
@@ -42,8 +41,8 @@ class Photo {
 
   factory Photo.fromJson(Map<String, dynamic> json) {
     return Photo(
-      id: json['id'].toString(),
-      albumId: json['album_id'].toString(),
+      id: json['id'].toInt(),
+      albumId: json['album_id'].toInt(),   // ✅ int
       originalUrl: json['original_url'] as String,
       thumbnailUrl: json['thumbnail_url'] as String,
       description: json['description'] as String?,
