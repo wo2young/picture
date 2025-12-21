@@ -1,113 +1,120 @@
 // lib/services/photo_service.dart
 import 'dart:async';
-import 'dart:math';
-import 'package:family_app/models/photo.dart';
+import 'package:flutter/foundation.dart';
+
 import 'package:family_app/api/api_client.dart';
+import 'package:family_app/models/photo.dart';
 import 'package:family_app/models/photo_detail.dart';
 
+/// ============================================================================
+/// PhotoService
+/// ----------------------------------------------------------------------------
+/// - 사진 관련 API 호출 전담
+/// - 상태는 들고 있지 않음 (ViewModel / Page 책임)
+/// - FastAPI /photos 엔드포인트와 1:1 매칭
+///
+/// ✔ 모든 ID는 int 기준
+/// ✔ create / read / update / delete 구조 완성
+/// ============================================================================
 class PhotoService {
-  // 임시 사진 데이터 (백엔드 스키마 기준)
-  final List<Photo> _photos = [
-    Photo(
-      id: 'p1',
-      albumId: '1',
-      originalUrl: 'https://picsum.photos/800?1',
-      thumbnailUrl: 'https://picsum.photos/400?1',
-      description: '예시 사진 1',
-      takenAt: DateTime.now().subtract(const Duration(days: 1)),
-      place: '제주',
-    ),
-    Photo(
-      id: 'p2',
-      albumId: '1',
-      originalUrl: 'https://picsum.photos/800?2',
-      thumbnailUrl: 'https://picsum.photos/400?2',
-      description: '예시 사진 2',
-      takenAt: DateTime.now().subtract(const Duration(days: 2)),
-      place: '부산',
-    ),
-    Photo(
-      id: 'p3',
-      albumId: '2',
-      originalUrl: 'https://picsum.photos/800?3',
-      thumbnailUrl: 'https://picsum.photos/400?3',
-      description: '예시 사진 3',
-      takenAt: DateTime.now(),
-      place: '서울',
-    ),
-  ];
-
-  // --------------------------------
-  // 앨범별 사진 조회
-  // --------------------------------
-  Future<List<Photo>> fetchPhotosByAlbum(String albumId) async {
-    await Future.delayed(const Duration(milliseconds: 300));
-    return _photos.where((p) => p.albumId == albumId).toList();
-  }
-
-  // --------------------------------
-  // 사진 업로드 (mock)
-  // --------------------------------
-  Future<Photo> uploadPhoto({
-    required String albumId,
+  // ---------------------------------------------------------------------------
+  // 사진 생성 (DB 저장)
+  // POST /photos
+  // ---------------------------------------------------------------------------
+  Future<void> createPhoto({
+    required int albumId,
     required String originalUrl,
     required String thumbnailUrl,
     String? description,
     String? place,
   }) async {
-    await Future.delayed(const Duration(milliseconds: 500));
-
-    final newPhoto = Photo(
-      id: DateTime.now().millisecondsSinceEpoch.toString(),
-      albumId: albumId,
-      originalUrl: originalUrl,
-      thumbnailUrl: thumbnailUrl,
-      description: description,
-      place: place,
-      takenAt: DateTime.now(),
-    );
-
-    _photos.insert(0, newPhoto);
-    return newPhoto;
+    try {
+      await ApiClient.post(
+        '/photos',
+        {
+          'album_id': albumId,
+          'uploader_id': 1, // TODO: 로그인 연동 시 교체
+          'original_url': originalUrl,
+          'thumbnail_url': thumbnailUrl,
+          'description': description,
+          'place': place,
+        },
+      );
+    } catch (e, stack) {
+      debugPrint('createPhoto 오류: $e\n$stack');
+      rethrow;
+    }
   }
 
-  // --------------------------------
-  // 설명 수정
-  // --------------------------------
-  Future<Photo> updatePhotoDescription(
-      Photo photo,
-      String newDescription,
-      ) async {
-    await Future.delayed(const Duration(milliseconds: 300));
+  // ---------------------------------------------------------------------------
+  // 앨범별 사진 목록 조회
+  // GET /photos/album/{albumId}
+  // ---------------------------------------------------------------------------
+  Future<List<Photo>> fetchPhotosByAlbum(int albumId) async {
+    try {
+      final data = await ApiClient.get(
+        '/photos/album/$albumId',
+      ) as List<dynamic>;
 
-    final updated = photo.copyWith(description: newDescription);
-    final index = _photos.indexWhere((p) => p.id == photo.id);
-    if (index != -1) _photos[index] = updated;
-
-    return updated;
+      return data
+          .map((e) => Photo.fromJson(e as Map<String, dynamic>))
+          .toList();
+    } catch (e, stack) {
+      debugPrint('fetchPhotosByAlbum 오류: $e\n$stack');
+      rethrow;
+    }
   }
 
-  // --------------------------------
-  // 추천 사진 1장 (랜덤)
-  // --------------------------------
-  Future<Photo?> fetchRandomFeaturedPhoto({String? exceptId}) async {
-    if (_photos.isEmpty) return null;
-
-    await Future.delayed(const Duration(milliseconds: 200));
-
-    final candidates = exceptId == null
-        ? _photos
-        : _photos.where((p) => p.id != exceptId).toList();
-
-    if (candidates.isEmpty) return null;
-
-    final rnd = Random();
-    return candidates[rnd.nextInt(candidates.length)];
-  }
-
+  // ---------------------------------------------------------------------------
   // 사진 상세 + 연결된 일기
-  Future<PhotoDetail> fetchPhotoDetail(String photoId) async {
-    final res = await ApiClient.get('/photos/$photoId');
-    return PhotoDetail.fromJson(res);
+  // GET /photos/{photoId}
+  // ---------------------------------------------------------------------------
+  Future<PhotoDetail> fetchPhotoDetail(int photoId) async {
+    try {
+      final data = await ApiClient.get(
+        '/photos/$photoId',
+      ) as Map<String, dynamic>;
+
+      return PhotoDetail.fromJson(data);
+    } catch (e, stack) {
+      debugPrint('fetchPhotoDetail 오류: $e\n$stack');
+      rethrow;
+    }
+  }
+
+  // ---------------------------------------------------------------------------
+  // 사진 수정 (설명 / 장소)
+  // PUT /photos/{photoId}
+  // ---------------------------------------------------------------------------
+  Future<void> updatePhoto({
+    required int photoId,
+    String? description,
+    String? place,
+  }) async {
+    try {
+      await ApiClient.put(
+        '/photos/$photoId',
+        {
+          'description': description,
+          'place': place,
+        },
+      );
+    } catch (e, stack) {
+      debugPrint('updatePhoto 오류: $e\n$stack');
+      rethrow;
+    }
+  }
+
+  // ---------------------------------------------------------------------------
+  // 사진 삭제 (soft delete)
+  // DELETE /photos/{photoId}
+  // ---------------------------------------------------------------------------
+  Future<void> deletePhoto(int photoId) async {
+    try {
+      await ApiClient.delete('/photos/$photoId');
+    } catch (e, stack) {
+      debugPrint('deletePhoto 오류: $e\n$stack');
+      rethrow;
+    }
   }
 }
