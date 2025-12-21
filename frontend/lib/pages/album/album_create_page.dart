@@ -16,32 +16,36 @@ class _AlbumCreatePageState extends State<AlbumCreatePage> {
   final _formKey = GlobalKey<FormState>();
   final _titleController = TextEditingController();
   final _descriptionController = TextEditingController();
+
   final AlbumService _albumService = AlbumService();
 
   bool _isSubmitting = false;
 
+  // TODO: 로그인 연동 시 실제 familyId로 교체
+  static const int _familyId = 1;
+
   Future<void> _submit() async {
     if (!_formKey.currentState!.validate()) return;
 
-    setState(() {
-      _isSubmitting = true;
-    });
+    setState(() => _isSubmitting = true);
 
     try {
       await _albumService.createAlbum(
+        familyId: _familyId,
         title: _titleController.text.trim(),
         description: _descriptionController.text.trim(),
       );
-      if (mounted) {
-        Navigator.of(context).pop();
-      }
+
+      if (!mounted) return;
+      Navigator.of(context).pop(true);
     } catch (e) {
-      // 에러 처리 위치
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('앨범 생성에 실패했습니다.')),
+      );
     } finally {
       if (mounted) {
-        setState(() {
-          _isSubmitting = false;
-        });
+        setState(() => _isSubmitting = false);
       }
     }
   }
