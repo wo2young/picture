@@ -1,10 +1,13 @@
 // lib/config/app_routes.dart
 import 'package:flutter/material.dart';
 
+import 'package:family_app/pages/auth/auth_gate.dart';
+import 'package:family_app/pages/auth/login_page.dart';
 import 'package:family_app/pages/home/home_page.dart';
 import 'package:family_app/pages/album/album_list_page.dart';
 import 'package:family_app/pages/album/album_detail_page.dart';
 import 'package:family_app/pages/album/album_create_page.dart';
+import 'package:family_app/pages/album/album_select_page.dart';
 import 'package:family_app/pages/photo/photo_view_page.dart';
 import 'package:family_app/pages/photo/photo_upload_page.dart';
 import 'package:family_app/pages/photo/photo_edit_page.dart';
@@ -21,10 +24,14 @@ import 'package:family_app/models/diary.dart';
 class AppRoutes {
   // 라우트 이름 상수
   static const home = '/';
+  static const authGate = '/auth-gate';
+  static const login = '/login';
+
 
   static const albumList = '/album/list';
   static const albumDetail = '/album/detail';
   static const albumCreate = '/album/create';
+  static const albumSelect = '/album/select';
 
   static const photoView = '/photo/view';
   static const photoUpload = '/photo/upload';
@@ -39,17 +46,30 @@ class AppRoutes {
   // RouteSettings.name 과 arguments 를 기준으로 실제 페이지를 만들어주는 부분
   static Route<dynamic> generateRoute(RouteSettings settings) {
     switch (settings.name) {
+
+      case authGate:
+        return MaterialPageRoute(
+          builder: (_) => const AuthGate(),
+        );
+
+      case login:
+        return MaterialPageRoute(
+          builder: (_) => const LoginPage(),
+        );
+
       case home:
         return MaterialPageRoute(builder: (_) => const HomePage());
 
       case albumList:
         return MaterialPageRoute(builder: (_) => const AlbumListPage());
 
-      case albumDetail:
-      // 앨범 상세는 Album 객체를 넘겨받는 구조로 설계
-        final album = settings.arguments as Album?;
+      case AppRoutes.albumDetail:
+        final album = settings.arguments as Album;
+
         return MaterialPageRoute(
-          builder: (_) => AlbumDetailPage(album: album),
+          builder: (_) => AlbumDetailPage(
+            album: album,
+          ),
         );
 
       case albumCreate:
@@ -62,11 +82,10 @@ class AppRoutes {
           builder: (_) => PhotoViewPage(photo: photo),
         );
 
-      case photoUpload:
-      // 특정 앨범에 업로드하고 싶을 때 Album 을 arguments 로 넘김 (null 가능)
-        final album = settings.arguments as Album?;
+      case AppRoutes.photoUpload:
+        final albumId = settings.arguments as int;
         return MaterialPageRoute(
-          builder: (_) => PhotoUploadPage(targetAlbum: album),
+          builder: (_) => PhotoUploadPage(albumId: albumId),
         );
 
       case photoEdit:
@@ -84,15 +103,25 @@ class AppRoutes {
           builder: (_) => DiaryDetailPage(diary: diary),
         );
 
-      case diaryWrite:
-      // 기존 일기를 수정할 때는 Diary 를 넘기고, 새로 작성할 때는 null
-        final original = settings.arguments as Diary?;
+        case diaryWrite:
+        final args = settings.arguments as Map<String, dynamic>?;
+
         return MaterialPageRoute(
-          builder: (_) => DiaryWritePage(original: original),
+          builder: (_) => DiaryWritePage(
+            original: args?['original'] as Diary?,
+            albumId: args?['albumId'] as int?,
+            initialPhotoId: args?['photoId'] as int?,
+          ),
         );
 
       case settingsPage:
         return MaterialPageRoute(builder: (_) => const SettingsPage());
+
+      case AppRoutes.albumSelect:
+        return MaterialPageRoute(
+          builder: (_) => const AlbumSelectPage(),
+        );
+
 
     // 정의되지 않은 라우트는 기본적으로 홈으로 이동
       default:
