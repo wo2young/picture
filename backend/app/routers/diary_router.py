@@ -2,74 +2,82 @@ from fastapi import APIRouter, HTTPException, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.database import get_db
-from app.schemas.diary_schema import DiaryCreate, DiaryUpdate
+from app.core.deps import get_current_user
+from app.models.user import AppUser
+from app.schemas.diary_schema import DiaryCreate, DiaryUpdate, DiaryResponse
 from app.services.diary_service import (
     create_diary,
-    list_diaries_by_family,
+    list_diaries,
+    get_diary,
     update_diary,
     delete_diary,
-    get_diary_with_photos,
+    get_photo_with_diaries,
 )
 
 router = APIRouter(prefix="/diaries", tags=["Diary"])
 
 
-# -------------------------------
-# 일기 생성
-# -------------------------------
-@router.post("/", summary="일기 생성")
+@router.post("", response_model=DiaryResponse)
 async def create_diary_api(
     payload: DiaryCreate,
     db: AsyncSession = Depends(get_db),
+    user: AppUser = Depends(get_current_user),
 ):
-    return await create_diary(db, payload.dict())
+    return await create_diary(db, user, **payload.dict())
 
 
-# -------------------------------
-# 가족별 일기 목록
-# -------------------------------
-@router.get("/family/{family_id}", summary="가족별 일기 목록")
+@router.get("", response_model=list[DiaryResponse])
 async def list_diaries_api(
-    family_id: int,
     db: AsyncSession = Depends(get_db),
+    user: AppUser = Depends(get_current_user),
 ):
-    return await list_diaries_by_family(db, family_id)
+    return await list_diaries(db, user)
 
 
-# -------------------------------
-# 일기 상세 조회 (+ 사진)
-# -------------------------------
-@router.get("/{diary_id}", summary="일기 상세 조회 (+ 사진)")
+@router.get("/{diary_id}", response_model=DiaryResponse)
 async def get_diary_detail(
     diary_id: int,
     db: AsyncSession = Depends(get_db),
+    user: AppUser = Depends(get_current_user),
 ):
-    diary = await get_diary_with_photos(db, diary_id)
-
+    diary = await get_diary(db, user, diary_id)
     if not diary:
-        raise HTTPException(status_code=404, detail="Diary not found")
-
+        raise HTTPException(status_code=404)
     return diary
 
 
-# -------------------------------
-# 일기 수정
-# -------------------------------
-@router.put("/{diary_id}", summary="일기 수정")
+@router.put("/{diary_id}")
 async def update_diary_api(
     diary_id: int,
     payload: DiaryUpdate,
     db: AsyncSession = Depends(get_db),
+    user: AppUser = Depends(get_current_user),
 ):
-    return await update_diary(db, diary_id, payload.dict())
+    ok = await update_diary(db, user, diary_id, **payload.dict())
+    if not ok:
+        raise HTTPException(status_code=404)
+    return {"result": "ok"}
 
 
-# -------------------------------
-# 일기 삭제 (soft delete)
-# -------------------------------
-@router.delete("/{diary_id}", summary="일기 삭제")
+@router.delete("/{diary_id}")
 async def delete_diary_api(
     diary_id: int,
     db: AsyncSession = Depends(get_db),
+    user: AppUser = Depends(get_current_user),
 ):
-    return await delete_diary(db, diary_id)
+    ok = await delete_diary(db, user, diary_id)
+    if not ok:
+        raise HTTPException(status_code=404)
+    return {"result": "ok"}
+
+
+@router.get("/photo/{photo_id}")
+async def get_photo_diaries(
+    photo_id: int,
+    db: AsyncSession = Depends(get_db),
+    user: AppUser = Depends(get_current_user),
+):
+    result = await get_photo_with_diaries(db, user, photo_id)
+    if not result:
+        raise HTTPException(status_code=404)
+    return result
