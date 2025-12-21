@@ -1,109 +1,126 @@
+// lib/pages/photo/photo_select_page.dart
 import 'package:flutter/material.dart';
-import 'package:family_app/services/photo_service.dart';
+
 import 'package:family_app/models/photo.dart';
+import 'package:family_app/services/photo_service.dart';
 
 class PhotoSelectPage extends StatefulWidget {
-  const PhotoSelectPage({super.key});
+  final int albumId;
+
+  const PhotoSelectPage({
+    super.key,
+    required this.albumId,
+  });
 
   @override
   State<PhotoSelectPage> createState() => _PhotoSelectPageState();
 }
 
 class _PhotoSelectPageState extends State<PhotoSelectPage> {
-  static final PhotoService _photoService = PhotoService();
+  final PhotoService _photoService = PhotoService();
+
+  bool _isLoading = true;
+  List<Photo> _photos = [];
 
   Photo? _selectedPhoto;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadPhotos();
+  }
+
+  Future<void> _loadPhotos() async {
+    try {
+      final list =
+      await _photoService.fetchPhotosByAlbum(widget.albumId);
+
+      if (!mounted) return;
+
+      setState(() {
+        _photos = list;
+        _isLoading = false;
+      });
+    } catch (e) {
+      if (!mounted) return;
+
+      setState(() => _isLoading = false);
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('사진을 불러오지 못했습니다.')),
+      );
+    }
+  }
+
+  void _confirm() {
+    if (_selectedPhoto == null) return;
+    Navigator.pop(context, _selectedPhoto);
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: const Text('사진 선택'),
-        centerTitle: true,
+        actions: [
+          TextButton(
+            onPressed: _selectedPhoto == null ? null : _confirm,
+            child: const Text('선택'),
+          ),
+        ],
       ),
+      body: _isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : GridView.builder(
+        padding: const EdgeInsets.all(16),
+        itemCount: _photos.length,
+        gridDelegate:
+        const SliverGridDelegateWithFixedCrossAxisCount(
+          crossAxisCount: 3,
+          crossAxisSpacing: 8,
+          mainAxisSpacing: 8,
+        ),
+        itemBuilder: (context, index) {
+          final photo = _photos[index];
+          final isSelected = _selectedPhoto?.id == photo.id;
 
-      body: FutureBuilder<List<Photo>>(
-        future: _photoService.fetchPhotosByAlbum('1'), // 임시 albumId
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
-          }
-
-          if (!snapshot.hasData || snapshot.data!.isEmpty) {
-            return const Center(child: Text('사진이 없습니다.'));
-          }
-
-          final photos = snapshot.data!;
-
-          return GridView.builder(
-            padding: const EdgeInsets.all(12),
-            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: 3,
-              crossAxisSpacing: 8,
-              mainAxisSpacing: 8,
-            ),
-            itemCount: photos.length,
-            itemBuilder: (context, index) {
-              final photo = photos[index];
-              final isSelected = _selectedPhoto?.id == photo.id;
-
-              return GestureDetector(
-                onTap: () {
-                  setState(() {
-                    _selectedPhoto = photo;
-                  });
-                },
-                child: Stack(
-                  children: [
-                    ClipRRect(
-                      borderRadius: BorderRadius.circular(8),
-                      child: Image.network(
-                        photo.thumbnailUrl,
-                        fit: BoxFit.cover,
-                        width: double.infinity,
-                        height: double.infinity,
-                      ),
+          return GestureDetector(
+            onTap: () {
+              setState(() => _selectedPhoto = photo);
+            },
+            child: Stack(
+              children: [
+                Positioned.fill(
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(8),
+                    child: Image.network(
+                      photo.thumbnailUrl,
+                      fit: BoxFit.cover,
                     ),
+                  ),
+                ),
 
-                    if (isSelected)
-                      Positioned.fill(
-                        child: Container(
-                          decoration: BoxDecoration(
-                            color: Colors.black.withOpacity(0.4),
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: const Center(
-                            child: Icon(
-                              Icons.check_circle,
-                              color: Colors.white,
-                              size: 36,
-                            ),
-                          ),
+                // ✅ 선택 표시
+                if (isSelected)
+                  Positioned.fill(
+                    child: Container(
+                      decoration: BoxDecoration(
+                        color: Colors.black.withOpacity(0.4),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: const Center(
+                        child: Icon(
+                          Icons.check_circle,
+                          color: Colors.white,
+                          size: 36,
                         ),
                       ),
-                  ],
-                ),
-              );
-            },
+                    ),
+                  ),
+              ],
+            ),
           );
         },
-      ),
-
-      // ------------------------------------------------------------
-      // 하단 선택 확정 버튼
-      // ------------------------------------------------------------
-      bottomNavigationBar: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(12),
-          child: ElevatedButton(
-            onPressed: _selectedPhoto == null
-                ? null
-                : () {
-              Navigator.pop(context, _selectedPhoto);
-            },
-            child: const Text('이 사진 선택'),
-          ),
-        ),
       ),
     );
   }

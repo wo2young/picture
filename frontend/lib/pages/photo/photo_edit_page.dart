@@ -1,10 +1,10 @@
 // lib/pages/photo/photo_edit_page.dart
+
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 import 'package:family_app/models/photo.dart';
 import 'package:family_app/services/photo_service.dart';
-import 'package:family_app/utils/validators.dart';
-import 'package:family_app/widgets/custom_button.dart';
 
 class PhotoEditPage extends StatefulWidget {
   final Photo photo;
@@ -19,87 +19,71 @@ class PhotoEditPage extends StatefulWidget {
 }
 
 class _PhotoEditPageState extends State<PhotoEditPage> {
-  final _formKey = GlobalKey<FormState>();
-  late final TextEditingController _captionController;
-  final PhotoService _photoService = PhotoService();
+  late final TextEditingController _descriptionController;
+  late final TextEditingController _placeController;
 
-  bool _isSubmitting = false;
+  bool _isSaving = false;
 
   @override
   void initState() {
     super.initState();
-    _captionController =
+    _descriptionController =
         TextEditingController(text: widget.photo.description ?? '');
-  }
-
-  Future<void> _submit() async {
-    if (!_formKey.currentState!.validate()) return;
-
-    setState(() {
-      _isSubmitting = true;
-    });
-
-    try {
-      await _photoService.updatePhotoDescription(
-        widget.photo,
-        _captionController.text.trim(),
-      );
-      if (mounted) {
-        Navigator.of(context).pop();
-      }
-    } catch (e) {
-      // 에러 처리 위치
-    } finally {
-      if (mounted) {
-        setState(() {
-          _isSubmitting = false;
-        });
-      }
-    }
+    _placeController =
+        TextEditingController(text: widget.photo.place ?? '');
   }
 
   @override
   void dispose() {
-    _captionController.dispose();
+    _descriptionController.dispose();
+    _placeController.dispose();
     super.dispose();
+  }
+
+  Future<void> _save() async {
+    setState(() => _isSaving = true);
+
+    try {
+      await context.read<PhotoService>().updatePhoto(
+        photoId: widget.photo.id, // ✅ int 그대로
+        description: _descriptionController.text.trim(),
+        place: _placeController.text.trim(),
+      );
+
+      if (mounted) {
+        Navigator.pop(context, true);
+      }
+    } finally {
+      if (mounted) setState(() => _isSaving = false);
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('사진 편집'),
+        title: const Text('사진 수정'),
+        actions: [
+          TextButton(
+            onPressed: _isSaving ? null : _save,
+            child: _isSaving
+                ? const CircularProgressIndicator()
+                : const Text('저장'),
+          ),
+        ],
       ),
       body: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
           children: [
-            // 사진 미리보기 자리
-            Container(
-              height: 200,
-              width: double.infinity,
-              color: Colors.grey.shade300,
-              child: Image.network(
-                widget.photo.thumbnailUrl,
-                fit: BoxFit.cover,
-              ),
+            TextField(
+              controller: _descriptionController,
+              decoration: const InputDecoration(labelText: '설명'),
             ),
-            const SizedBox(height: 16),
-            Form(
-              key: _formKey,
-              child: TextFormField(
-                controller: _captionController,
-                decoration: const InputDecoration(
-                  labelText: '설명',
-                ),
-                validator: (value) =>
-                    Validators.maxLength(value, 200, fieldName: '설명'),
-              ),
-            ),
-            const Spacer(),
-            CustomButton(
-              label: _isSubmitting ? '저장 중...' : '저장',
-              onPressed: _isSubmitting ? null : _submit,
+            const SizedBox(height: 12),
+            TextField(
+              controller: _placeController,
+              decoration: const InputDecoration(labelText: '장소'),
             ),
           ],
         ),
