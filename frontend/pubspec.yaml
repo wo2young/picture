@@ -18,12 +18,12 @@ dependencies:
   provider: ^6.0.5
 
   # 이미지 선택
-  image_picker: 1.0.7
+  image_picker: ^1.0.7
+  http: ^1.2.0
 
   shared_preferences: ^2.2.3
 
 dependency_overrides:
-  # lifecycle 최신 버전이 SDK 35 요구 → 강제로 안정버전 사용
   flutter_plugin_android_lifecycle: 2.0.14
 
 dev_dependencies:
@@ -33,3 +33,15 @@ dev_dependencies:
 
 flutter:
   uses-material-design: true
+
+  assets:
+    - assets/fonts/
+
+  fonts:
+    - family: Pretendard
+      fonts:
+        - asset: assets/fonts/Pretendard-Regular.otf
+        - asset: assets/fonts/Pretendard-Medium.otf
+          weight: 500
+        - asset: assets/fonts/Pretendard-Bold.otf
+          weight: 700
